@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>qml/main.qml</file>
+        <file>qml/VideoView.qml</file>
+        <file>qml/VideoTest.qml</file>
+        <file>qml/ScreenRecordingTest.qml</file>
     </qresource>
 </RCC>

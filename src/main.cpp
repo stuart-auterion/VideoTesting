@@ -1,6 +1,10 @@
 #include <QGuiApplication>
+#include <QQmlContext>
 #include <QQmlApplicationEngine>
-
+#ifdef __ANDROID__
+#include "mobileScreenManager.h"
+#endif
+//#include <gst/gst.h>
 
 int main(int argc, char *argv[])
 {
@@ -9,6 +13,13 @@ int main(int argc, char *argv[])
 #endif
     QGuiApplication app(argc, argv);
 
+    QCoreApplication::setOrganizationName("Test");
+    QCoreApplication::setOrganizationDomain("Test");
+
+//    gst_init(NULL,NULL);
+//    GstElement *sink = gst_element_factory_make ("qmlglsink", NULL);
+//    gst_object_unref(sink);
+
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -16,6 +27,12 @@ int main(int argc, char *argv[])
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
+
+#ifdef __ANDROID__
+    MobileScreenManager mobileScreenManager(nullptr);
+    engine.rootContext()->setContextProperty("MobileScreenManager", &mobileScreenManager);
+#endif /* __ANDROID__ */
+
     engine.load(url);
 
     return app.exec();

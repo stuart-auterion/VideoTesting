@@ -1,4 +1,4 @@
-QT += quick
+QT += quick location multimedia
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -8,10 +8,10 @@ SOURCES += \
     src/main.cpp \
 
 INCLUDEPATH += \
-    inc \
+    inc/
 
 HEADERS += \
-    inc/main.cpp \
+#    inc/streamer.h \
 
 RESOURCES += \
     resources.qrc
@@ -22,7 +22,14 @@ QML_IMPORT_PATH =
 # Additional import path used to resolve QML modules just for Qt Quick Designer
 QML_DESIGNER_IMPORT_PATH =
 
+android {
+    include(android.pri)
+}
+include(video.pri)
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
