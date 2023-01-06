@@ -15,10 +15,6 @@ Item {
             onClicked: MobileScreenManager.recording ? MobileScreenManager.stopScreenRecording()
                                                      : MobileScreenManager.startScreenRecording()
         }
-        Button {
-            text: "View recordings"
-            onClicked: fileDialog.open()
-        }
     }
     ListView {
 
@@ -38,17 +34,30 @@ Item {
                 text: modelData
                 verticalAlignment: Text.AlignHCenter
             }
-            Image {
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                width: height
-                antialiasing: true
-                sourceSize: Qt.size(24, 24)
-                source: "qrc:/img/share.svg"
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: MobileScreenManager.shareFile(MobileScreenManager.recordingsFolder + "/" + modelData, "video/mp4")
+            Row {
+                anchors.fill: parent
+                layoutDirection: Qt.RightToLeft
+                Image {
+                    width: height
+                    height: parent.height
+                    antialiasing: true
+                    sourceSize: Qt.size(24, 24)
+                    source: "qrc:/img/share.svg"
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: MobileScreenManager.shareFile(MobileScreenManager.recordingsFolder + "/" + modelData, "video/mp4")
+                    }
+                }
+                Image {
+                    width: height
+                    height: parent.height
+                    antialiasing: true
+                    sourceSize: Qt.size(24, 24)
+                    source: "qrc:/img/trash.svg"
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: MobileScreenManager.deleteFile(MobileScreenManager.recordingsFolder + "/" + modelData)
+                    }
                 }
             }
         }

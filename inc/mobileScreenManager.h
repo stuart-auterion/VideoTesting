@@ -13,6 +13,7 @@ public:
     Q_INVOKABLE void startScreenRecording();
     Q_INVOKABLE void stopScreenRecording();
     Q_INVOKABLE void shareFile(QString filepath, QString type);
+    Q_INVOKABLE void deleteFile(QString filepath);
     QStringList recordingFiles();
 signals:
     void recordingChanged();

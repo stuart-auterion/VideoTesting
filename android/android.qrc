@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>img/share.svg</file>
+        <file>img/trash.svg</file>
     </qresource>
 </RCC>

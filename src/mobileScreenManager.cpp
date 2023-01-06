@@ -51,3 +51,9 @@ void MobileScreenManager::shareFile(QString filepath, QString type) {
                                               jFilepath.object<jstring>(),
                                               jType.object<jstring>());
 }
+
+void MobileScreenManager::deleteFile(QString filepath) {
+    QFile file(filepath);
+    file.moveToTrash();
+    emit recordingFilesChanged();
+}
