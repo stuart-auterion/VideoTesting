@@ -70,6 +70,17 @@
             <!-- extract android style -->
         </activity>
         <!-- For adding service(s) please check: https://wiki.qt.io/AndroidServices -->
+        <provider
+           android:name="androidx.core.content.FileProvider"
+           android:authorities="org.test.test.provider"
+           android:exported="false"
+           android:grantUriPermissions="true">
+           <!-- resource file to create -->
+           <meta-data
+               android:name="android.support.FILE_PROVIDER_PATHS"
+               android:resource="@xml/file_paths">
+           </meta-data>
+       </provider>
     </application>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_INTERNAL_STORAGE"/>

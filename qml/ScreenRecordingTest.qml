@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Dialogs 1.3
-import Qt.labs.platform 1.1
+import Qt.labs.folderlistmodel 2.15
 
 Item {
     anchors.fill: parent
@@ -20,8 +20,43 @@ Item {
             onClicked: fileDialog.open()
         }
     }
-    FolderDialog {
-        id: fileDialog
-        folder: MobileScreenManager.recordingsFolder
+    ListView {
+
+    }
+    ListView {
+        width: 300
+        height: 400
+        x: 10
+        y: 250
+        model: MobileScreenManager.recordingFiles
+        delegate: Rectangle {
+            height: 60
+            width: parent.width
+            color: "lightgrey"
+            Text {
+                anchors.fill: parent
+                text: modelData
+                verticalAlignment: Text.AlignHCenter
+            }
+            Image {
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: height
+                antialiasing: true
+                sourceSize: Qt.size(24, 24)
+                source: "qrc:/img/share.svg"
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: MobileScreenManager.shareFile(MobileScreenManager.recordingsFolder + "/" + modelData, "video/mp4")
+                }
+            }
+        }
+        Rectangle {
+            color: "transparent"
+            border.color: "black"
+            border.width: 1
+            anchors.fill: parent
+        }
     }
 }

@@ -1,5 +1,7 @@
 #include "mobileScreenManager.h"
 
+#include <QDesktopServices>
+#include <QDir>
 #include <QtAndroidExtras/QtAndroidExtras>
 #include <QtAndroidExtras/QAndroidJniObject>
 
@@ -21,8 +23,7 @@ void MobileScreenManager::startScreenRecording() {
     QString filename = QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
     QAndroidJniObject jFilename = QAndroidJniObject::fromString(filename);
     QAndroidJniObject jFilepath = QAndroidJniObject::fromString(m_recordingsFolder);
-    QAndroidJniObject::callStaticMethod<void>(jniClassName,
-                                              "startScreenRecording",
+    QAndroidJniObject::callStaticMethod<void>(jniClassName, "startScreenRecording",
                                               "(Ljava/lang/String;Ljava/lang/String;)V",
                                               jFilepath.object<jstring>(),
                                               jFilename.object<jstring>());
@@ -33,5 +34,20 @@ void MobileScreenManager::startScreenRecording() {
 void MobileScreenManager::stopScreenRecording() {
     QAndroidJniObject::callStaticMethod<void>(jniClassName, "stopScreenRecording");
     m_recording = false;
+    emit recordingFilesChanged();
     emit recordingChanged();
+}
+
+QStringList MobileScreenManager::recordingFiles() {
+    return QDir(m_recordingsFolder).entryList({"*.mp4"});
+}
+
+void MobileScreenManager::shareFile(QString filepath, QString type) {
+    QAndroidJniObject jFilepath = QAndroidJniObject::fromString(filepath);
+    QAndroidJniObject jType = QAndroidJniObject::fromString(type);
+    qDebug() << filepath << type;
+    QAndroidJniObject::callStaticMethod<void>(jniClassName, "shareFile",
+                                              "(Ljava/lang/String;Ljava/lang/String;)V",
+                                              jFilepath.object<jstring>(),
+                                              jType.object<jstring>());
 }

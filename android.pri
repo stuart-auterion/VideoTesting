@@ -8,6 +8,9 @@ SOURCES += \
 HEADERS += \
     inc/mobileScreenManager.h
 
+RESOURCES += \
+    $$PWD/android/android.qrc
+
 DISTFILES += \
     $$PWD/android/AndroidManifest.xml \
     $$PWD/android/build.gradle \
@@ -17,4 +20,5 @@ DISTFILES += \
     $$PWD/android/gradlew \
     $$PWD/android/gradlew.bat \
     $$PWD/android/res/values/libs.xml \
+    $$PWD/android/res/xml/file_paths.xml \
     $$PWD/android/src/org/test/test/TestActivity.java \

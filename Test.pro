@@ -1,4 +1,4 @@
-QT += quick location multimedia
+QT += core quick location multimedia svg xml gui
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -31,5 +31,3 @@ include(video.pri)
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
-
-ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
