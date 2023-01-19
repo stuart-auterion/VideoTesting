@@ -1,9 +1,14 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-
+#ifdef Q_OS_ANDROID
+#include <gstreamer.h>
+#endif
 
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_ANDROID
+    setupAndroidGstreamer();
+#endif
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif

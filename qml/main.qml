@@ -13,15 +13,16 @@ Window {
     MediaPlayer {
         id: player
         autoPlay: true
-        /* RTP over UDP: X2D IR feed */
-        /* RTP over UDP: X2D E0 feed */
-        /* RTSP: Back Yard Cam */
-        /* RTSP: Front Yard Cam */
-        source: protocolSwitch.checked       /* alternatively: uri:udp://0.0.0.0:5600 */
-                ? (videoSwitch.checked ? "gst-pipeline: udpsrc port=5602 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" ! parsebin ! queue ! decodebin ! autovideosink"
-                                       : "gst-pipeline: udpsrc port=5600 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" ! parsebin ! queue ! decodebin ! autovideosink")
-                : (videoSwitch.checked ? "rtsp://admin:jCTpYyt1g46x9zPn@192.168.2.23:554/cam/realmonitor?channel=1&subtype=0"
-                                       : "rtsp://admin:jCTpYyt1g46x9zPn@192.168.2.21:554/cam/realmonitor?channel=1&subtype=0")
+        source: "gst-pipeline: videotestsrc ! qtvideosink"
+//        /* RTP over UDP: X2D IR feed */
+//        /* RTP over UDP: X2D E0 feed */
+//        /* RTSP: Back Yard Cam */
+//        /* RTSP: Front Yard Cam */
+//        source: protocolSwitch.checked       /* alternatively: uri:udp://0.0.0.0:5600 */
+//                ? (videoSwitch.checked ? "gst-pipeline: udpsrc port=5602 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" ! parsebin ! queue ! decodebin ! autovideosink"
+//                                       : "gst-pipeline: udpsrc port=5600 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" ! parsebin ! queue ! decodebin ! autovideosink")
+//                : (videoSwitch.checked ? "rtsp://admin:jCTpYyt1g46x9zPn@192.168.2.23:554/cam/realmonitor?channel=1&subtype=0"
+//                                       : "rtsp://admin:jCTpYyt1g46x9zPn@192.168.2.21:554/cam/realmonitor?channel=1&subtype=0")
         videoOutput: video
     }
     VideoOutput {
@@ -44,6 +45,7 @@ Window {
         anchors.top: parent.top
         anchors.margins: 10
         height: 50
+        visible: false
         Text {
             text: protocolSwitch.checked ? "E0" : "Front yard"
             Layout.preferredHeight: parent.height

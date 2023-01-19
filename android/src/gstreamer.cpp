@@ -1,0 +1,51 @@
+#include "gstreamer.h"
+#include <private/qgstutils_p.h>
+#include <gst/gstplugin.h>
+
+extern "C" {
+    GST_PLUGIN_STATIC_DECLARE(coreelements);
+    GST_PLUGIN_STATIC_DECLARE(playback);
+    GST_PLUGIN_STATIC_DECLARE(videotestsrc);
+    GST_PLUGIN_STATIC_DECLARE(audioconvert);
+    GST_PLUGIN_STATIC_DECLARE(videoconvert);
+    GST_PLUGIN_STATIC_DECLARE(autodetect);
+    GST_PLUGIN_STATIC_DECLARE(gio);
+    // NO SOUP FOR YOU!
+    //GST_PLUGIN_STATIC_DECLARE(soup);
+    GST_PLUGIN_STATIC_DECLARE(app);
+    GST_PLUGIN_STATIC_DECLARE(isomp4);
+    GST_PLUGIN_STATIC_DECLARE(avi);
+    GST_PLUGIN_STATIC_DECLARE(ogg);
+    GST_PLUGIN_STATIC_DECLARE(vorbis);
+    GST_PLUGIN_STATIC_DECLARE(tcp);
+    GST_PLUGIN_STATIC_DECLARE(audioparsers);
+    GST_PLUGIN_STATIC_DECLARE(theora);
+    GST_PLUGIN_STATIC_DECLARE(mpg123);
+    GST_PLUGIN_STATIC_DECLARE(typefindfunctions);
+    GST_PLUGIN_STATIC_DECLARE(x264);
+    GST_PLUGIN_STATIC_DECLARE(libav);
+};
+
+void setupAndroidGstreamer() {
+    QGstUtils::initializeGst();
+    GST_PLUGIN_STATIC_REGISTER(coreelements);
+    GST_PLUGIN_STATIC_REGISTER(playback);
+    GST_PLUGIN_STATIC_REGISTER(videotestsrc);
+    GST_PLUGIN_STATIC_REGISTER(audioconvert);
+    GST_PLUGIN_STATIC_REGISTER(videoconvert);
+    GST_PLUGIN_STATIC_REGISTER(autodetect);
+//    GST_PLUGIN_STATIC_REGISTER(soup);
+    GST_PLUGIN_STATIC_REGISTER(gio);
+    GST_PLUGIN_STATIC_REGISTER(app);
+    GST_PLUGIN_STATIC_REGISTER(isomp4);
+    GST_PLUGIN_STATIC_REGISTER(avi);
+    GST_PLUGIN_STATIC_REGISTER(ogg);
+    GST_PLUGIN_STATIC_REGISTER(vorbis);
+    GST_PLUGIN_STATIC_REGISTER(tcp);
+    GST_PLUGIN_STATIC_REGISTER(audioparsers);
+    GST_PLUGIN_STATIC_REGISTER(theora);
+    GST_PLUGIN_STATIC_REGISTER(mpg123);
+    GST_PLUGIN_STATIC_REGISTER(typefindfunctions);
+    GST_PLUGIN_STATIC_REGISTER(x264);
+    GST_PLUGIN_STATIC_REGISTER(libav);
+}
