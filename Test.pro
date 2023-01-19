@@ -7,8 +7,16 @@ QT += core quick location multimedia svg xml gui
 SOURCES += \
     src/main.cpp \
 
-INCLUDEPATH += \
-    inc/
+#INCLUDEPATH += \
+#    inc/ \
+#    $$(GSTREAMER_ROOT_ANDROID)/include/gstreamer-1.0 \
+#    $$(GSTREAMER_ROOT_ANDROID)/include/glib-2.0 \
+#    $$(GSTREAMER_ROOT_ANDROID)/lib/glib-2.0/include \
+
+#LIBS += \
+#    $$(GSTREAMER_ROOT_ANDROID)/lib/gstreamer-1.0/libgstcoreelements.a
+
+message($$(GSTREAMER_ROOT_ANDROID)/include/gstreamer-1.0)
 
 HEADERS += \
 #    inc/streamer.h \

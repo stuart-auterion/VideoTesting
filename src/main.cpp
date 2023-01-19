@@ -1,10 +1,15 @@
+#include <gst/gst.h>
+//#include <gio/gio.h>
 #include <QGuiApplication>
 #include <QQmlContext>
 #include <QQmlApplicationEngine>
 #ifdef __ANDROID__
 #include "mobileScreenManager.h"
 #endif
-//#include <gst/gst.h>
+
+extern "C" {
+GST_PLUGIN_STATIC_DECLARE(coreelements);
+}
 
 int main(int argc, char *argv[])
 {
@@ -17,6 +22,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("Test");
 
 //    gst_init(NULL,NULL);
+//    GST_PLUGIN_STATIC_REGISTER(coreelements);
 //    GstElement *sink = gst_element_factory_make ("qmlglsink", NULL);
 //    gst_object_unref(sink);
 
