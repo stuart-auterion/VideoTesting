@@ -1,16 +1,19 @@
 import QtQuick 2.15
 
 import org.freedesktop.gstreamer.GLVideoItem 1.0
+import Video 1.0
 
-GstGLVideoItem {
-    id: video
-    property var videoStreamObject
-    property bool autoplay: true
-    Component.onCompleted: {
-        videoStreamObject = VideoManager.addStream(this)
+Item {
+    property alias autoplay: videoStream.autoplay
+    property alias uri: videoStream.uri
+    property alias type: videoStream.type
+    VideoStream {
+        id: videoStream
+        autoplay: true
+        gstVideoItem: gstGLVideoItem
     }
-    MouseArea {
+    GstGLVideoItem {
+        id: gstGLVideoItem
         anchors.fill: parent
-        onClicked: videoStreamObject.play()
     }
 }

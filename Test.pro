@@ -43,7 +43,7 @@ linux {
 
 # VIDEO
 LinuxBuild {
-    QT += x11extras waylandclient
+    QT += x11extras waylandclient gui-private
     CONFIG += link_pkgconfig
     packagesExist(gstreamer-1.0) {
         PKGCONFIG += gstreamer-1.0 gstreamer-video-1.0 gstreamer-gl-1.0
