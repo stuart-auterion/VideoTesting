@@ -10,29 +10,43 @@ Window {
     visible: true
     title: qsTr("Hello World")
     property bool uriSwitch: false
-    Timer {
-        interval: 5000
-        repeat: true
-        running: true
-        // Test dynamically recreating the stream
-        onTriggered: uriSwitch = !uriSwitch
-    }
-    Column {
+//    Timer {
+//        interval: 5000
+//        repeat: true
+//        running: true
+//        // Test dynamically recreating the stream
+//        onTriggered: uriSwitch = !uriSwitch
+//    }
+    Flow {
+        spacing: 1
         anchors.fill: parent
+        anchors.margins: 1
+        //        VideoPlayer {
+        //            type: VideoStream.TEST
+        //            width: 200
+        //            height: 480/640 * width
+        //        }
+        //        VideoPlayer {
+        //            uri: uriSwitch ? "admin:jCTpYyt1g46x9zPn@192.168.2.21:554/cam/realmonitor?channel=1&subtype=0" : "admin:jCTpYyt1g46x9zPn@192.168.2.23:554/cam/realmonitor?channel=1&subtype=0"
+        //            type: VideoStream.RTSP
+        //            width: 200
+        //            height: 480/640 * width
+        //        }
+        //        VideoPlayer {
+        //            uri: uriSwitch ? "admin:jCTpYyt1g46x9zPn@192.168.2.23:554/cam/realmonitor?channel=1&subtype=0" : "admin:jCTpYyt1g46x9zPn@192.168.2.21:554/cam/realmonitor?channel=1&subtype=0"
+        //            type: VideoStream.RTSP
+        //            width: 200
+        //            height: 480/640 * width
+        //        }
         VideoPlayer {
-            type: VideoStream.TEST
+            uri: "127.0.0.1"
+            type: VideoStream.KLV_ENCODE
             width: 200
             height: 480/640 * width
         }
         VideoPlayer {
-            uri: uriSwitch ? "admin:jCTpYyt1g46x9zPn@192.168.2.21:554/cam/realmonitor?channel=1&subtype=0" : "admin:jCTpYyt1g46x9zPn@192.168.2.23:554/cam/realmonitor?channel=1&subtype=0"
-            type: VideoStream.RTSP
-            width: 200
-            height: 480/640 * width
-        }
-        VideoPlayer {
-            uri: uriSwitch ? "admin:jCTpYyt1g46x9zPn@192.168.2.23:554/cam/realmonitor?channel=1&subtype=0" : "admin:jCTpYyt1g46x9zPn@192.168.2.21:554/cam/realmonitor?channel=1&subtype=0"
-            type: VideoStream.RTSP
+            uri: "127.0.0.1"
+            type: VideoStream.KLV_DECODE
             width: 200
             height: 480/640 * width
         }

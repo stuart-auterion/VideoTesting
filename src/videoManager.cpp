@@ -1,5 +1,6 @@
 #include "videoManager.h"
 
+#include <gst/app/gstappsrc.h>
 #include <gst/gst.h>
 
 #include <QDebug>
@@ -125,6 +126,31 @@ void VideoStream::createPipeline() {
     }
     QString pipelineString;
     switch (_type) {
+        case KLV_ENCODE:
+            pipelineString =
+                QString(
+                    /* Video source to tee */
+                    "videotestsrc ! tee name=t "
+                    /* Mux to network sink */
+                    "rtpmux name=mux ! udpsink port=5000 host=%1 "
+                    /* Tee'd video source to mux */
+                    "t. ! x264enc tune=zerolatency bitrate=1000 speed-preset=superfast ! "
+                    "rtph264pay ! queue ! mux. "
+                    /* KLV to Mux */
+                    "appsrc name=klvsrc caps=meta/x-klv,parsed=true,spare=true,is-live=true ! "
+                    "rtpklvpay ! queue ! mux. "
+                    /* Tee'd video source to QML sink */
+                    "t. ! glupload ! glcolorconvert ! qmlglsink name=qmlsink")
+                    .arg(_uri);
+            break;
+        case KLV_DECODE:
+            pipelineString = QString(
+                                 "udpsrc port=5000 ! application/x-rtp, media=(string)video, "
+                                 "clock-rate=(int)90000, encoding-name=(string)H264, "
+                                 "payload=(int)96 ! parsebin ! queue ! decodebin ! glupload ! "
+                                 "glcolorconvert ! qmlglsink name=qmlsink")
+                                 .arg(_uri);
+            break;
         case RTSP:
             pipelineString = QString(
                                  "rtspsrc location=rtsp://%1 ! rtpjitterbuffer ! parsebin ! queue  "
@@ -156,6 +182,14 @@ void VideoStream::createPipeline() {
     _pipeline = gst_parse_launch(pipelineString.toStdString().c_str(), NULL);
     GstElement* sink = gst_bin_get_by_name(GST_BIN(_pipeline), "qmlsink");
     g_object_set(sink, "widget", _gstVideoItem, NULL);
+    if (_type == KLV_ENCODE) {
+        GstElement* klvsrc = gst_bin_get_by_name(GST_BIN(_pipeline), "klvsrc");
+        g_signal_connect(klvsrc, "need-data", G_CALLBACK(_insertKlv), NULL);
+    }
+//    if (_type == KLV_DECODE) {
+//        GstElement* klvsrc = gst_bin_get_by_name(GST_BIN(_pipeline), "demux");
+//        g_signal_connect(klvsrc, "new-payload-type", G_CALLBACK(_klvDemuxHandler), NULL);
+//    }
 }
 
 bool VideoStream::autoplay() const {
@@ -186,6 +220,32 @@ void VideoStream::setAutoplay(bool newAutoplay) {
     } else {
         _timer.stop();
     }
+}
+
+struct PcktBuffer {
+    char* buffer;
+    int length;
+};
+static uint8_t data[21] = {
+    0x06, 0x0E, 0x2B, 0x34, 0x02, 0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* Universal header */
+    4,                                                                /* Total length of KLV */
+    1,                                                                /* Key */
+    2,                                                                /* Length */
+    0x01, 0x02                                                        /* Value */
+};
+void VideoStream::_insertKlv(GstElement* src, guint, GstElement) {
+    size_t size = sizeof(data) / sizeof(data[0]);
+    GstFlowReturn ret;
+    GstBuffer* buffer = gst_buffer_new_allocate(NULL, size, NULL);
+    gst_buffer_fill(buffer, 0, data, size);
+    ret = gst_app_src_push_buffer((GstAppSrc*)src, buffer);
+    if (ret != GST_FLOW_OK) {
+        qDebug() << "KLV encode error";
+    }
+}
+
+void VideoStream::_klvDemuxHandler(GstElement* demux, guint pt, GstPad* pad, gpointer udata) {
+    qDebug() << pt;
 }
 
 void VideoStream::setGstVideoItem(QObject* newGstVideoItem) {

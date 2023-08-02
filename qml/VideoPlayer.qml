@@ -16,4 +16,10 @@ Item {
         id: gstGLVideoItem
         anchors.fill: parent
     }
+    Rectangle {
+        anchors.fill: parent
+        border.width: 1
+        border.color: "black"
+        color: "transparent"
+    }
 }

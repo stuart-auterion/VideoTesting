@@ -20,7 +20,7 @@ class VideoStream : public QObject {
     Q_INVOKABLE void start();
     Q_INVOKABLE void stop();
     // Enumerations
-    enum Type { RTPUDP, RTSP, TEST, INVALID };
+    enum Type { RTPUDP, RTSP, TEST, KLV_ENCODE, KLV_DECODE, INVALID };
     Q_ENUM(Type)
     // Set functions
     void setGstVideoItem(QObject* newGstVideoItem);
@@ -41,6 +41,9 @@ class VideoStream : public QObject {
     void typeChanged();
 
   private:
+    static void _insertKlv(GstElement *src, guint, GstElement);
+    static void _klvDemuxHandler(GstElement *demux, guint pt, GstPad *pad, gpointer udata);
+
     bool _autoplay;
     QObject* _gstVideoItem = nullptr;
     GstElement* _pipeline = nullptr;

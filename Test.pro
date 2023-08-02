@@ -46,7 +46,7 @@ LinuxBuild {
     QT += x11extras waylandclient gui-private
     CONFIG += link_pkgconfig
     packagesExist(gstreamer-1.0) {
-        PKGCONFIG += gstreamer-1.0 gstreamer-video-1.0 gstreamer-gl-1.0
+        PKGCONFIG += gstreamer-1.0 gstreamer-video-1.0 gstreamer-app-1.0 gstreamer-gl-1.0
         CONFIG += VideoEnabled
     }
     DEFINES += HAVE_QT_X11 HAVE_QT_EGLFS HAVE_QT_WAYLAND
