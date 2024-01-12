@@ -41,8 +41,9 @@ class VideoStream : public QObject {
     void typeChanged();
 
   private:
-    static void _insertKlv(GstElement *src, guint, GstElement);
-    static void _klvDemuxHandler(GstElement *demux, guint pt, GstPad *pad, gpointer udata);
+    void _insertKlv();
+    static GstFlowReturn _decodeKlvCallback(GstElement *appsink, gpointer data);
+    void _decodeKlv(GstSample* sample);
 
     bool _autoplay;
     QObject* _gstVideoItem = nullptr;
@@ -50,6 +51,7 @@ class VideoStream : public QObject {
     QTimer _timer;
     Type _type = INVALID;
     QString _uri;
+    QTimer _klvTimer;
 };
 
 Q_DECLARE_METATYPE(VideoStream*)

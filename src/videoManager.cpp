@@ -1,13 +1,19 @@
 #include "videoManager.h"
 
+#include <gst/app/gstappsink.h>
 #include <gst/app/gstappsrc.h>
 #include <gst/gst.h>
+#include <unistd.h>
 
 #include <QDebug>
 #include <QObject>
 #include <QQmlEngine>
 #include <QUuid>
+#include <QtEndian>
 #include <QtGlobal>
+
+#include "libklv/include/Klv.h"
+#include "libklv/include/KlvParser.hpp"
 
 /******************************************************************************
  * GStreamer initialization
@@ -34,6 +40,7 @@ GST_PLUGIN_STATIC_DECLARE(androidmedia);
 GST_PLUGIN_STATIC_DECLARE(videotestsrc);
 #endif
 GST_PLUGIN_STATIC_DECLARE(qmlgl);
+GST_PLUGIN_STATIC_DECLARE(mpegtsdemux);
 G_END_DECLS
 
 #ifdef Q_OS_ANDROID
@@ -79,6 +86,12 @@ void initVideo() {
         sink = gst_element_factory_make("qmlglsink", nullptr);
         Q_UNUSED(sink)
     }
+    sink = gst_element_factory_make("mpegtscustom", nullptr);
+    if (sink == nullptr) {
+        GST_PLUGIN_STATIC_REGISTER(mpegtsdemux);
+        sink = gst_element_factory_make("mpegts", nullptr);
+        Q_UNUSED(sink)
+    }
     qmlRegisterType<VideoStream>("Video", 1, 0, "VideoStream");
     qRegisterMetaType<VideoStream*>();
     initialized = true;
@@ -115,9 +128,16 @@ void VideoStream::stop() {
     }
 }
 
+static void cb_new_pad(GstElement* element, GstPad* pad, gpointer data) {
+    qDebug() << "New pad: " << gst_pad_get_name(pad);
+    GstCaps* caps = gst_pad_get_current_caps(pad);
+    qDebug() << gst_caps_to_string(caps);
+}
+
 void VideoStream::createPipeline() {
     // If we're missing information
-    if ((_gstVideoItem == nullptr) || (_type == INVALID) || (_uri.isEmpty() && (_type != TEST))) {
+    if ((_gstVideoItem == nullptr) ||
+        (_type == INVALID) /*|| (_uri.isEmpty() && (_type != TEST))*/) {
         return;
     }
     if (_pipeline != nullptr) {
@@ -134,8 +154,8 @@ void VideoStream::createPipeline() {
                     /* Mux to network sink */
                     "rtpmux name=mux ! udpsink port=5000 host=%1 "
                     /* Tee'd video source to mux */
-                    "t. ! x264enc tune=zerolatency bitrate=1000 speed-preset=superfast ! "
-                    "rtph264pay ! queue ! mux. "
+                    //                    "t. ! x264enc tune=zerolatency bitrate=1000
+                    //                    speed-preset=superfast ! " "rtph264pay ! queue ! mux. "
                     /* KLV to Mux */
                     "appsrc name=klvsrc caps=meta/x-klv,parsed=true,spare=true,is-live=true ! "
                     "rtpklvpay ! queue ! mux. "
@@ -145,11 +165,12 @@ void VideoStream::createPipeline() {
             break;
         case KLV_DECODE:
             pipelineString = QString(
-                                 "udpsrc port=5000 ! application/x-rtp, media=(string)video, "
-                                 "clock-rate=(int)90000, encoding-name=(string)H264, "
-                                 "payload=(int)96 ! parsebin ! queue ! decodebin ! glupload ! "
-                                 "glcolorconvert ! qmlglsink name=qmlsink")
-                                 .arg(_uri);
+                "filesrc "
+                "location=/home/stuart/Videos/video_h264_raw_hvalstad.ts ! "
+                "tsdemux name=demux ! queue ! decodebin ! "
+                "glupload ! glcolorconvert ! qmlglsink name=qmlsink "
+                "demux. ! meta/x-klv ! queue ! appsink emit-signals=true name=klvsink"
+            );
             break;
         case RTSP:
             pipelineString = QString(
@@ -183,13 +204,17 @@ void VideoStream::createPipeline() {
     GstElement* sink = gst_bin_get_by_name(GST_BIN(_pipeline), "qmlsink");
     g_object_set(sink, "widget", _gstVideoItem, NULL);
     if (_type == KLV_ENCODE) {
-        GstElement* klvsrc = gst_bin_get_by_name(GST_BIN(_pipeline), "klvsrc");
-        g_signal_connect(klvsrc, "need-data", G_CALLBACK(_insertKlv), NULL);
+        _klvTimer.setInterval(1000);
+        connect(&_klvTimer, &QTimer::timeout, this, &VideoStream::_insertKlv);
+        _klvTimer.start();
     }
-//    if (_type == KLV_DECODE) {
-//        GstElement* klvsrc = gst_bin_get_by_name(GST_BIN(_pipeline), "demux");
-//        g_signal_connect(klvsrc, "new-payload-type", G_CALLBACK(_klvDemuxHandler), NULL);
-//    }
+    if (_type == KLV_DECODE) {
+        GstElement* element;
+        element = gst_bin_get_by_name(GST_BIN(_pipeline), "demux");
+        g_signal_connect(element, "pad-added", G_CALLBACK(cb_new_pad), NULL);
+//        GstElement* klvsink = gst_bin_get_by_name(GST_BIN(_pipeline), "klvsink");
+//        g_signal_connect(klvsink, "new-sample", G_CALLBACK(_decodeKlvCallback), this);
+    }
 }
 
 bool VideoStream::autoplay() const {
@@ -222,10 +247,6 @@ void VideoStream::setAutoplay(bool newAutoplay) {
     }
 }
 
-struct PcktBuffer {
-    char* buffer;
-    int length;
-};
 static uint8_t data[21] = {
     0x06, 0x0E, 0x2B, 0x34, 0x02, 0x01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* Universal header */
     4,                                                                /* Total length of KLV */
@@ -233,19 +254,74 @@ static uint8_t data[21] = {
     2,                                                                /* Length */
     0x01, 0x02                                                        /* Value */
 };
-void VideoStream::_insertKlv(GstElement* src, guint, GstElement) {
-    size_t size = sizeof(data) / sizeof(data[0]);
-    GstFlowReturn ret;
-    GstBuffer* buffer = gst_buffer_new_allocate(NULL, size, NULL);
-    gst_buffer_fill(buffer, 0, data, size);
-    ret = gst_app_src_push_buffer((GstAppSrc*)src, buffer);
+void VideoStream::_insertKlv() {
+    GstFlowReturn ret = GST_FLOW_ERROR;
+    GstElement* klvsrc = gst_bin_get_by_name(GST_BIN(_pipeline), "klvsrc");
+    if (klvsrc) {
+        size_t size = sizeof(data) / sizeof(data[0]);
+        GstBuffer* buffer = gst_buffer_new_allocate(NULL, size, NULL);
+        gst_buffer_fill(buffer, 0, data, size);
+        ret = gst_app_src_push_buffer((GstAppSrc*)klvsrc, buffer);
+    }
     if (ret != GST_FLOW_OK) {
         qDebug() << "KLV encode error";
     }
 }
 
-void VideoStream::_klvDemuxHandler(GstElement* demux, guint pt, GstPad* pad, gpointer udata) {
-    qDebug() << pt;
+GstFlowReturn VideoStream::_decodeKlvCallback(GstElement* appsink, gpointer data) {
+    VideoStream* parent = static_cast<VideoStream*>(data);
+    if ((appsink == nullptr) || (parent == nullptr)) {
+        return GST_FLOW_OK;
+    }
+    GstSample* sample = gst_app_sink_pull_sample(GST_APP_SINK(appsink));
+    if (sample != nullptr) {
+        parent->_decodeKlv(sample);
+    }
+    gst_sample_unref(sample);
+    sample = nullptr;
+    return GST_FLOW_OK;
+}
+
+void VideoStream::_decodeKlv(GstSample* sample) {
+    GstBuffer* buffer = gst_sample_get_buffer(sample);
+    if (buffer == nullptr) {
+        return;
+    }
+    GstMapInfo map;
+    if (!gst_buffer_map(buffer, &map, GST_MAP_READ)) {
+        return;
+    }
+    KlvParser parser({KlvParser::KEY_ENCODING_16_BYTE, KlvParser::KEY_ENCODING_BER_OID});
+    KLV* parsed_klv = NULL;
+    for (gsize i = 0; i < map.size; i++) {
+        parsed_klv = parser.parseByte(map.data[i]);
+    }
+    if (parsed_klv) {
+        std::unordered_map<std::vector<uint8_t>, KLV> map = parsed_klv->indexToMap();
+        for (std::pair<const std::vector<unsigned char>, KLV>& pair : map) {
+            if (pair.first.empty() || (pair.first.size() > 1)) {
+                continue;
+            }
+            uint8_t key = pair.first[0];
+            QByteArray value(reinterpret_cast<const char*>(pair.second.getValue().data()),
+                             pair.second.getValue().size());
+            switch (key) {
+                case 16:  // Horizontal field of view
+                    qDebug() << "HFoV: "
+                             << (qFromBigEndian<quint16>(value.data()) * 180.0f / 0xFFFF);
+                    break;
+                case 17:  // Vertical field of view
+                    qDebug() << "VFoV: "
+                             << (qFromBigEndian<quint16>(value.data()) * 180.0f / 0xFFFF);
+                    break;
+                case 56:  // Vertical field of view
+                    qDebug() << "Ground speed: " << qFromBigEndian<quint8>(value.data());
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 }
 
 void VideoStream::setGstVideoItem(QObject* newGstVideoItem) {

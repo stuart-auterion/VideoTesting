@@ -11,13 +11,23 @@ QML_IMPORT_PATH +=  \
 
 SOURCES += \
     src/main.cpp \
-    src/videoManager.cpp
+    src/videoManager.cpp \
+    external/libklv/src/Klv.cpp \
+    external/libklv/src/KlvParser.cpp \
 
 INCLUDEPATH += \
     inc \
+    external \
+    external/libklv/include \
 
 HEADERS += \
     inc/videoManager.h \
+    inc/QObjectList.h \
+    external/libklv/include/Klv.h \
+    external/libklv/include/KlvFormatException.hpp \
+    external/libklv/include/KlvParser.hpp \
+#    inc/CustomObject.h \
+#    inc/ObjectManager.h \
 
 RESOURCES += \
     resources.qrc
@@ -46,11 +56,12 @@ LinuxBuild {
     QT += x11extras waylandclient gui-private
     CONFIG += link_pkgconfig
     packagesExist(gstreamer-1.0) {
-        PKGCONFIG += gstreamer-1.0 gstreamer-video-1.0 gstreamer-app-1.0 gstreamer-gl-1.0
+        PKGCONFIG += gstreamer-1.0 gstreamer-video-1.0 gstreamer-app-1.0 gstreamer-gl-1.0 gstreamer-codecparsers-1.0 gstreamer-audio-1.0 gstreamer-tag-1.0 gstreamer-bad-audio-1.0 gstreamer-plugins-base-1.0
         CONFIG += VideoEnabled
     }
     DEFINES += HAVE_QT_X11 HAVE_QT_EGLFS HAVE_QT_WAYLAND
-} else:AndroidBuild {
+}
+else:AndroidBuild {
     QMAKE_CXX_FLAGS += -lstdc++fs -std=c++17
     DEFINES += HAVE_QT_ANDROID
     contains(QT_ARCH, .*arm64.*) {
@@ -125,3 +136,35 @@ INCLUDEPATH += \
     /usr/include/gstreamer-1.0/ \
     /usr/include/glib-2.0/ \
     /usr/lib/x86_64-linux-gnu/glib-2.0/include/ \
+
+SOURCES += \
+    external/gst-custom-tsdemux/tsdemux.c \
+    external/gst-custom-tsdemux/mpegtspacketizer.c \
+    external/gst-custom-tsdemux/pesparse.c \
+    external/gst-custom-tsdemux/mpegtsbase.c \
+    external/gst-custom-tsdemux/gsttsdemux.c \
+    external/gst-custom-tsdemux/gstmpegtssection.c \
+    external/gst-custom-tsdemux/gstmpegtsdescriptor.c \
+    external/gst-custom-tsdemux/mpegtsparse.c \
+    external/gst-custom-tsdemux/gst-dvb-section.c \
+    external/gst-custom-tsdemux/gst-dvb-descriptor.c \
+    external/gst-custom-tsdemux/gst-atsc-section.c \
+
+DEFINES += PACKAGE=tsdemuxcustom GETTEXT_PACKAGE
+
+HEADERS += \
+    external/gst-custom-tsdemux/tsdemux.h \
+    external/gst-custom-tsdemux/mpegtsbase.h \
+    external/gst-custom-tsdemux/mpegtspacketizer.h \
+    external/gst-custom-tsdemux/gstmpegdefs.h \
+    external/gst-custom-tsdemux/gstmpegdesc.h \
+    external/gst-custom-tsdemux/pesparse.h \
+    external/gst-custom-tsdemux/mpegtsparse.h \
+    external/gst-custom-tsdemux/gstmpegtssection.h \
+    external/gst-custom-tsdemux/mpegts.h \
+    external/gst-custom-tsdemux/mpegts-private.h \
+    external/gst-custom-tsdemux/gstmpegtsdescriptor.h \
+    external/gst-custom-tsdemux/gst-i18n-plugin.h \
+    external/gst-custom-tsdemux/gst-dvb-section.h \
+    external/gst-custom-tsdemux/gst-dvb-descriptor.h \
+    external/gst-custom-tsdemux/gst-atsc-section.h \

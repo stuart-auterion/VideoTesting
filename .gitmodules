@@ -1,0 +1,3 @@
+[submodule "external/libklv"]
+	path = external/libklv
+	url = git@github.com:Hunter522/libklv.git
